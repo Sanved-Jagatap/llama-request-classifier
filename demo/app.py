@@ -5,8 +5,8 @@ import json, re
 import gradio as gr
 from llama_cpp import Llama
 
-GGUF_REPO = "YOUR-HF-USERNAME/Llama-3.2-3B-request-classifier"   # <-- change YOUR-HF-USERNAME
-GGUF_FILE = "unsloth.Q4_K_M.gguf"                      # <-- change if different
+GGUF_REPO = "Sanved13/Llama-3.2-3B-request-classifier"   # <-- change YOUR-HF-USERNAME
+GGUF_FILE = "req-classifier.Q4_K_M.gguf"                     # <-- change if different
 THRESHOLD = 0.70
 SYSTEM = ("You are a customer-request classifier. Read the request and reply with ONLY a JSON object "
           "with keys: request_type, urgency, sub_topic, confidence, summary, customer_sentiment, "
