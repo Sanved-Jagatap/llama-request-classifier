@@ -44,7 +44,6 @@ Charts: `results/confusion.png`, `results/reliability.png`, `results/confidence_
 ### Training Loss
 ![Training Loss](loss_ft_full.png)
 
-
 ### How to read these numbers honestly
 - **Lead with the hand-written subset.** The 86 hand-written messages were never produced by the data generator, so they are the fairest check. On type accuracy the gain is 61 of 73 correct to 71 of 73, which is unlikely to be noise. Counts are small, so single-digit differences elsewhere in that subset should not be over-read.
 - **The synthetic test items are easier than real traffic.** They come from the same generator and filtering as the training data, so synthetic scores are optimistic.
