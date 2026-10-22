@@ -2,7 +2,7 @@
 
 A LoRA/QLoRA fine-tune of **Llama 3.2 3B Instruct** that replaces a ~1,000-token prompt-engineered classifier in an n8n + Ollama customer-request triage workflow. The model classifies; deterministic workflow logic still makes every routing decision, and low-confidence or invalid outputs go to a human.
 
-**Links:** [Model on Hugging Face](https://huggingface.co/Sanved13/Llama-3.2-3B-request-classifier) | [Run the live demo in Colab](https://colab.research.google.com/github/<GITHUB-USER>/<REPO>/blob/main/demo/colab_demo.ipynb)
+**Links:** [Model on Hugging Face](https://huggingface.co/Sanved13/Llama-3.2-3B-request-classifier) | [Run the live demo in Colab](https://colab.research.google.com/github/Sanved-Jagatap/llama-request-classifier/blob/main/demo/colab_demo.ipynb)
 
 **Result in one line:** on a held-out test set, request-type accuracy rose from **78.3% to 98.1%** (hand-written subset: 83.6% to 97.3%), false emergency alarms fell from **10.2% to 0%**, hallucinated entities fell from **13.2% to 3.1%**, the prompt shrank from **998 to 128 tokens**, and latency dropped **43%**, all running locally through Ollama.
 
