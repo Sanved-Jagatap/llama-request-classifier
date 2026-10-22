@@ -1,0 +1,14 @@
+.venv/
+__pycache__/
+*.py[cod]
+*.gguf
+*.zip
+adapter_ft_full/
+data/raw/
+data/review_sample.csv
+preds/
+.env
+.env.*
+!.env.example
+audit-log-api-workflow.json
+incoming-request-workflow-v7-finetuned.json

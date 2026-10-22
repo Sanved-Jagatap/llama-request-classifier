@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Incoming Request Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0F1420;
+    --surface: #171E2E;
+    --surface-raised: #1D2536;
+    --border: #2A3347;
+    --text: #E8EBF2;
+    --text-dim: #8B94AC;
+    --accent: #4F8EF7;
+    --complaint: #F5A623;
+    --enquiry: #2DD4BF;
+    --service: #4F8EF7;
+    --urgent: #F5484D;
+    --review: #A78BFA;
+    --radius: 10px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    display: flex;
+    min-height: 100vh;
+  }
+  .mono { font-family: 'IBM Plex Mono', monospace; }
+
+  /* Sidebar */
+  nav {
+    width: 220px;
+    flex-shrink: 0;
+    border-right: 1px solid var(--border);
+    padding: 28px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .brand {
+    font-family: 'Fraunces', serif;
+    font-size: 20px;
+    font-weight: 500;
+    margin: 0 0 28px 8px;
+    letter-spacing: -0.01em;
+  }
+  nav button {
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    text-align: left;
+    padding: 10px 12px;
+    border-radius: var(--radius);
+    font-size: 14px;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+  nav button:hover { background: var(--surface); color: var(--text); }
+  nav button.active { background: var(--surface-raised); color: var(--text); font-weight: 500; }
+  .conn-block {
+    margin-top: auto;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+  }
+  .conn-block label {
+    display: block;
+    font-size: 12px;
+    color: var(--text-dim);
+    margin: 10px 0 4px;
+  }
+  .conn-block input {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 6px;
+    padding: 7px 9px;
+    font-size: 12px;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  .conn-status { font-size: 11px; color: var(--text-dim); margin-top: 6px; }
+
+  main {
+    flex: 1;
+    padding: 40px 48px;
+    max-width: 900px;
+  }
+  h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 28px;
+    margin: 0 0 6px;
+    letter-spacing: -0.01em;
+  }
+  .sub { color: var(--text-dim); font-size: 14px; margin: 0 0 32px; }
+
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* Form */
+  form {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px;
+  }
+  .row { margin-bottom: 18px; }
+  .row.two { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  label { display: block; font-size: 13px; color: var(--text-dim); margin-bottom: 6px; }
+  input, textarea, select {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 7px;
+    padding: 10px 12px;
+    font-size: 14px;
+    font-family: inherit;
+  }
+  input:focus, textarea:focus, select:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+  textarea { min-height: 100px; resize: vertical; }
+  .submit-btn {
+    background: var(--accent);
+    color: #0B1220;
+    border: none;
+    font-weight: 600;
+    font-size: 14px;
+    padding: 11px 20px;
+    border-radius: 7px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .submit-btn:hover { filter: brightness(1.08); }
+  .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* Result reveal */
+  #result {
+    margin-top: 24px;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease;
+  }
+  #result.show { max-height: 600px; }
+  .result-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 22px;
+  }
+  .result-head { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .chip {
+    font-size: 12px;
+    font-weight: 500;
+    padding: 3px 10px;
+    border-radius: 100px;
+    display: inline-block;
+  }
+  .result-id { font-size: 12px; color: var(--text-dim); }
+  .result-field { margin-bottom: 12px; }
+  .result-field .k { font-size: 12px; color: var(--text-dim); margin-bottom: 2px; }
+  .result-field .v { font-size: 14px; line-height: 1.5; }
+
+  /* Table */
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead th {
+    text-align: left;
+    color: var(--text-dim);
+    font-weight: 500;
+    font-size: 12px;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  tbody td {
+    padding: 10px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  tbody tr:hover { background: var(--surface); cursor: pointer; }
+  .subrow td {
+    background: var(--surface-raised);
+    padding: 14px 16px;
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+  .subrow .v { color: var(--text); }
+  .empty-state, .error-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-dim);
+    font-size: 14px;
+  }
+  .refresh-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 7px 14px;
+    border-radius: 7px;
+    font-size: 13px;
+    cursor: pointer;
+    font-family: inherit;
+    margin-bottom: 16px;
+  }
+  .refresh-btn:hover { border-color: var(--accent); }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="brand">Request Console</div>
+  <button id="nav-new" class="active" onclick="showView('new')">New Request</button>
+  <button id="nav-log" onclick="showView('log')">Log</button>
+  <div class="conn-block">
+    <label>Intake webhook URL</label>
+    <input id="intake-url" placeholder="http://localhost:5678/webhook/incoming-request-intake-api">
+    <label>Dashboard webhook URL</label>
+    <input id="dashboard-url" placeholder="http://localhost:5678/webhook/incoming-request-audit-log">
+    <div class="conn-status" id="conn-status">Not connected yet</div>
+  </div>
+</nav>
+
+<main>
+  <div id="view-new" class="view active">
+    <h1>Route a request</h1>
+    <p class="sub">Submit a customer message. It's classified, routed, and logged automatically.</p>
+    <form id="intake-form">
+      <div class="row two">
+        <div>
+          <label>Customer name</label>
+          <input name="Customer Name" required>
+        </div>
+        <div>
+          <label>Customer email</label>
+          <input name="Customer Email" type="email" required>
+        </div>
+      </div>
+      <div class="row">
+        <label>Subject</label>
+        <input name="Subject" required>
+      </div>
+      <div class="row">
+        <label>Message</label>
+        <textarea name="Request Message" required></textarea>
+      </div>
+      <div class="row two">
+        <div>
+          <label>Customer ID (optional)</label>
+          <input name="Customer ID">
+        </div>
+        <div>
+          <label>Channel</label>
+          <select name="Channel">
+            <option>Email</option>
+            <option>Web Form</option>
+            <option>Phone</option>
+            <option>Chat</option>
+          </select>
+        </div>
+      </div>
+      <button type="submit" class="submit-btn" id="submit-btn">Send for classification</button>
+    </form>
+
+    <div id="result">
+      <div class="result-card" id="result-card"></div>
+    </div>
+  </div>
+
+  <div id="view-log" class="view">
+    <h1>Request log</h1>
+    <p class="sub">Every processed request, from the audit trail.</p>
+    <button class="refresh-btn" onclick="loadLog()">Refresh</button>
+    <div id="log-container"></div>
+  </div>
+</main>
+
+<script>
+  const branchColors = {
+    complaint: 'var(--complaint)',
+    general_enquiry: 'var(--enquiry)',
+    service_request: 'var(--service)',
+    urgent_escalation: 'var(--urgent)',
+    human_review: 'var(--review)'
+  };
+  const branchLabels = {
+    complaint: 'Complaint',
+    general_enquiry: 'Enquiry',
+    service_request: 'Service Request',
+    urgent_escalation: 'Urgent',
+    human_review: 'Human Review'
+  };
+
+  function getUrls() {
+    return {
+      intake: localStorage.getItem('intake-url') || '',
+      dashboard: localStorage.getItem('dashboard-url') || ''
+    };
+  }
+
+  const intakeInput = document.getElementById('intake-url');
+  const dashboardInput = document.getElementById('dashboard-url');
+  const saved = getUrls();
+  intakeInput.value = saved.intake;
+  dashboardInput.value = saved.dashboard;
+  intakeInput.addEventListener('change', () => localStorage.setItem('intake-url', intakeInput.value.trim()));
+  dashboardInput.addEventListener('change', () => localStorage.setItem('dashboard-url', dashboardInput.value.trim()));
+  updateConnStatus();
+  function updateConnStatus() {
+    const u = getUrls();
+    document.getElementById('conn-status').textContent =
+      (u.intake && u.dashboard) ? 'URLs saved' : 'Paste both webhook URLs above';
+  }
+  intakeInput.addEventListener('change', updateConnStatus);
+  dashboardInput.addEventListener('change', updateConnStatus);
+
+  function showView(name) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+    document.getElementById('view-' + name).classList.add('active');
+    document.getElementById('nav-' + name).classList.add('active');
+    if (name === 'log') loadLog();
+  }
+
+  const form = document.getElementById('intake-form');
+  const submitBtn = document.getElementById('submit-btn');
+  const resultDiv = document.getElementById('result');
+  const resultCard = document.getElementById('result-card');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const url = getUrls().intake;
+    if (!url) { alert('Paste your intake webhook URL in the sidebar first.'); return; }
+
+    const data = {};
+    new FormData(form).forEach((v, k) => data[k] = v);
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Classifying…';
+    resultDiv.classList.remove('show');
+
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      if (!res.ok) throw new Error('Workflow returned ' + res.status);
+      const json = await res.json();
+      const out = Array.isArray(json) ? json[0] : json;
+      renderResult(out);
+      form.reset();
+    } catch (err) {
+      resultCard.innerHTML = `<div class="error-state">Couldn't reach the workflow. Check the webhook URL and that n8n is running and active.<br><span class="mono" style="font-size:12px">${err.message}</span></div>`;
+      resultDiv.classList.add('show');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Send for classification';
+    }
+  });
+
+  function renderResult(out) {
+    const branch = out.branch || 'human_review';
+    const color = branchColors[branch] || 'var(--text-dim)';
+    const label = branchLabels[branch] || branch;
+    resultCard.innerHTML = `
+      <div class="result-head">
+        <span class="chip" style="background:${color}22; color:${color}; border:1px solid ${color}55">${label}</span>
+        <span class="result-id mono">${out.request_id || ''}</span>
+      </div>
+      <div class="result-field"><div class="k">Status</div><div class="v">${out.status || ''}</div></div>
+      ${out.assigned_team ? `<div class="result-field"><div class="k">Assigned to</div><div class="v">${out.assigned_team}</div></div>` : ''}
+      <div class="result-field"><div class="k">Response</div><div class="v">${(out.generated_response || out.draft_acknowledgement || '').replace(/\n/g, '<br>')}</div></div>
+    `;
+    resultDiv.classList.add('show');
+  }
+
+  async function loadLog() {
+    const container = document.getElementById('log-container');
+    const url = getUrls().dashboard;
+    if (!url) { container.innerHTML = '<div class="empty-state">Paste your dashboard webhook URL in the sidebar first.</div>'; return; }
+    container.innerHTML = '<div class="empty-state">Loading…</div>';
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('Workflow returned ' + res.status);
+      const payload = await res.json();
+      let rows = Array.isArray(payload) ? payload : (payload.requests || []);
+      if (rows.length === 0) {
+        container.innerHTML = '<div class="empty-state">No requests yet — submit one to see it appear here.</div>';
+        return;
+      }
+      // Read Audit Log Rows already sorts newest-first; no need to reverse
+      const tableRows = rows.map((r, i) => {
+        const branch = r.branch || 'human_review';
+        const color = branchColors[branch] || 'var(--text-dim)';
+        const label = branchLabels[branch] || branch;
+        return `
+          <tr onclick="toggleSub(${i})">
+            <td class="mono">${r.request_id || ''}</td>
+            <td class="mono">${(r.timestamp || '').replace('T', ' ').slice(0, 16)}</td>
+            <td>${r.customer_name || ''}</td>
+            <td>${r.subject || ''}</td>
+            <td><span class="chip" style="background:${color}22; color:${color}; border:1px solid ${color}55">${label}</span></td>
+            <td>${r.confidence !== undefined ? r.confidence : ''}</td>
+            <td>${r.human_review_required === 'Yes' ? 'Yes' : 'No'}</td>
+          </tr>
+          <tr class="subrow" id="sub-${i}" style="display:none">
+            <td colspan="7">
+              <div><span class="k">Status: </span><span class="v">${r.status || ''}</span></div>
+              <div style="margin-top:8px"><span class="k">Actions: </span><span class="v">${r.actions_taken || ''}</span></div>
+              <div style="margin-top:8px"><span class="k">Response: </span><span class="v">${(r.generated_response || '').replace(/\n/g, '<br>')}</span></div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+      container.innerHTML = `
+        <table>
+          <thead>
+            <tr><th>ID</th><th>Time</th><th>Customer</th><th>Subject</th><th>Branch</th><th>Confidence</th><th>Review</th></tr>
+          </thead>
+          <tbody>${tableRows}</tbody>
+        </table>
+      `;
+    } catch (err) {
+      container.innerHTML = `<div class="error-state">Couldn't load the log. Check the dashboard webhook URL and that n8n is running.<br><span class="mono" style="font-size:12px">${err.message}</span></div>`;
+    }
+  }
+
+  function toggleSub(i) {
+    const el = document.getElementById('sub-' + i);
+    el.style.display = el.style.display === 'none' ? 'table-row' : 'none';
+  }
+</script>
+</body>
+</html>

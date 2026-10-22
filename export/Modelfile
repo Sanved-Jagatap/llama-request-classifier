@@ -1,0 +1,19 @@
+# Put this file in the project root, next to req-classifier.Q4_K_M.gguf, then run from the project root:
+#   ollama create req-classifier -f Modelfile
+FROM ./req-classifier.Q4_K_M.gguf
+
+TEMPLATE """{{ if .System }}<|start_header_id|>system<|end_header_id|>
+
+{{ .System }}<|eot_id|>{{ end }}{{ if .Prompt }}<|start_header_id|>user<|end_header_id|>
+
+{{ .Prompt }}<|eot_id|>{{ end }}<|start_header_id|>assistant<|end_header_id|>
+
+{{ .Response }}<|eot_id|>"""
+
+SYSTEM """You are a customer-request classifier. Read the request and reply with ONLY a JSON object with keys: request_type, urgency, sub_topic, confidence, summary, customer_sentiment, entities (invoice_number, amount, currency), required_action."""
+
+PARAMETER temperature 0
+PARAMETER num_ctx 2048
+PARAMETER stop "<|start_header_id|>"
+PARAMETER stop "<|end_header_id|>"
+PARAMETER stop "<|eot_id|>"
